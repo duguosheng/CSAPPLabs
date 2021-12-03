@@ -317,11 +317,40 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
+  int shift16, shift8, shift4, shift2, shift1, shift0;
   // 符号位
-  int sx = (x >> 31) & 1;
-  // 获得正x：将x的符号位清零
-  int posX = x & ~(1 << 31);
-  return 0;
+  int sx = x >> 31;
+  // 正数: sx=0x00...0, x=0b0000...
+  //      sx&~x=0  x&~sx=x, 或运算结果为x本身
+  // 负数: sx=0xff...f, x=0b1111...
+  //      sx&~x=~x  x&~sx=0, 或运算结果为~x
+  // 接下来只需要判断最高位的1在哪里
+  x = (sx & ~x) | (x & ~sx);
+  // 若高16位有1存在，那么!!(x>>16)=1, shiftSize=16
+  // 若高16位不存在1，shiftSize=0
+  shift16 = !!(x >> 16) << 4;
+  // 如果高16位存在1，那么右移16位，来检查高16位的情况
+  // 若高16位不存在1，右移无效，检查低16位
+  x >>= shift16;
+
+  shift8 = !!(x >> 8) << 3;
+  x >>= shift8;
+
+  shift4 = !!(x >> 4) << 2;
+  x >>= shift4;
+
+  shift2 = !!(x >> 2) << 1;
+  x >>= shift2;
+
+  shift1 = !!(x >> 1);
+  x >>= shift1;
+
+  shift0 = x;
+
+  // 最后的1是符号位
+  // 正数：例如8，需要4+1位，即0b01000
+  // 负数：例如-5，0b1011，求得取反后0b0100中最高位1的位置后还需加1
+  return shift16 + shift8 + shift4 + shift2 + shift1 + shift0 + 1;
 }
 //float
 /*
@@ -336,7 +365,19 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int sign = (uf >> 31) & 0x1;  // 符号位
+  int exp = (uf >> 23) & 0xff;  // 阶码
+  int frac = uf & 0x7fffff;     // 小数位
+
+  // 阶码全部为1的特殊值
+  // 若frac=0，表示无穷大；若frac不全为0，表示NaN
+  // 这两种情况都可以直接返回
+  if (!(exp ^ 0xff))
+    return uf;
+  else if (!exp)  // 阶码全部为0，小数部分为0.M，直接左移
+    return (sign << 31) | (frac << 1);
+  else  // 规格化数，小数部分为1.M，将阶码加1
+    return (sign << 31) | ((exp + 1) << 23) | frac;
 }
 /*
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -351,7 +392,28 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int sign = (uf >> 31) & 0x1;  // 符号位
+  int exp = (uf >> 23) & 0xff;  // 阶码
+  int frac = uf & 0x7fffff;     // 小数位
+  int realExp = exp - 127;      // 真正的阶数
+
+  // 1.M左移31位会溢出
+  if (realExp >= 31)
+    return 0x80000000u;
+  if (realExp < 0)
+    return 0;
+
+  // 规格化数隐藏一位1
+  frac |= 1 << 23;
+  if (realExp < 23) {
+    // realExp小于23时，需要右移舍入部分位
+    frac >>= (23 - realExp);
+  } else {
+    // 大于23时，左移
+    frac <<= (realExp - 23);
+  }
+
+  return (sign ? -frac : frac);
 }
 /*
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -367,5 +429,24 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-  return 2;
+  // 阶码为0xfe时，表示幂次为127
+  if (x > 127)
+    return 0xff << 23; // +INF
+
+  // -126+(-23)最低次幂为-149
+  if (x < -149)
+    return 0;
+
+  // 规格化数
+  if (x >= -126) {
+    int exp = x + 127;
+    return exp << 23;
+  } else {
+    // -126+(shift-23)=x  ==>  shift=149+x
+    // 阶码自带-126次幂
+    // 在23位的小数位中，1左移0位表示2e-23，左移1位表示2e-22
+    // 可得: 移位次幂=-23+shift
+    int shiftSize = 149 + x;
+    return 1 << shiftSize;
+  }
 }
