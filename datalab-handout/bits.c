@@ -302,6 +302,7 @@ int logicalNeg(int x) {
   // sx^sMinusX 若符号位相同则为0，然后异或得到1
   // 为了区分0和INT_MIN还需要判断sx，0的sx为0，异或后为1
   // 两个条件相与得到结果
+  // 等同于!(sx ^ sMinusX) & !(sx ^ 1)，但不允许使用!
   return ((sx ^ sMinusX ^ 1) & (sx ^ 1));
 }
 /* howManyBits - return the minimum number of bits required to represent x in
@@ -400,6 +401,7 @@ int floatFloat2Int(unsigned uf) {
   // 1.M左移31位会溢出
   if (realExp >= 31)
     return 0x80000000u;
+  // 1.M*2的负次幂小于1，直接返回0
   if (realExp < 0)
     return 0;
 
@@ -429,7 +431,7 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-  // 阶码为0xfe时，表示幂次为127
+  // 阶码为0xfe时，表示幂次为127，再大就是无穷
   if (x > 127)
     return 0xff << 23; // +INF
 
