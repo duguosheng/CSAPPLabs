@@ -132,17 +132,17 @@ check the legality of your solutions.
    *      the correct answers.
    */
 
-
 #endif
-   //1
-   /*
+//1
+/*
     * bitXor - x^y using only ~ and &
     *   Example: bitXor(4, 5) = 1
     *   Legal ops: ~ &
     *   Max ops: 14
     *   Rating: 1
     */
-  int bitXor(int x, int y) {
+int bitXor(int x, int y)
+{
   // x&y得到全为1的位，~x&~y得到全为0的位
   // 二者取反后相与得到不相同的位
   return (~(x & y) & ~(~x & ~y));
@@ -153,7 +153,8 @@ check the legality of your solutions.
  *   Max ops: 4
  *   Rating: 1
  */
-int tmin(void) {
+int tmin(void)
+{
   // 最小的二进制补码
   return (1 << 31);
 }
@@ -165,7 +166,8 @@ int tmin(void) {
  *   Max ops: 10
  *   Rating: 1
  */
-int isTmax(int x) {
+int isTmax(int x)
+{
   // 假设1位符号位，三位数据位，最大值为0111
   // x+1=1000 ~x=1000，加1和取反二者相等
   // 但是1111也符合条件，因此要特殊判断
@@ -182,7 +184,8 @@ int isTmax(int x) {
  *   Max ops: 12
  *   Rating: 2
  */
-int allOddBits(int x) {
+int allOddBits(int x)
+{
   // 不能直接定义0XAAAAAAAA，因此用或运算产生
   int cmp = 0xAA;
   cmp |= cmp << 8;
@@ -198,7 +201,8 @@ int allOddBits(int x) {
  *   Max ops: 5
  *   Rating: 2
  */
-int negate(int x) {
+int negate(int x)
+{
   // 根据x的补码求-x的补码：按位取反再加1
   // 推导：x+(~x)=-1 x+(-x)=0 ==> -x=~x+1
   return (~x) + 1;
@@ -213,7 +217,8 @@ int negate(int x) {
  *   Max ops: 15
  *   Rating: 3
  */
-int isAsciiDigit(int x) {
+int isAsciiDigit(int x)
+{
   // 0x30 = 0b110000
   // 0x39 = 0b111001
   // 判断第4，5位（从0开始）是否为1
@@ -233,7 +238,8 @@ int isAsciiDigit(int x) {
  *   Max ops: 16
  *   Rating: 3
  */
-int conditional(int x, int y, int z) {
+int conditional(int x, int y, int z)
+{
   // 判断x是否为0
   int isZero = !x;
   // 求-isZero的补码
@@ -259,7 +265,8 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 
-int isLessOrEqual(int x, int y) {
+int isLessOrEqual(int x, int y)
+{
   // 注意这里不是真正的符号位，如果符号位为1
   // 由于算术右移结果是0xffffffff
   int sx = x >> 31;
@@ -290,7 +297,8 @@ int isLessOrEqual(int x, int y) {
  *   Max ops: 12
  *   Rating: 4
  */
-int logicalNeg(int x) {
+int logicalNeg(int x)
+{
   // 获取符号位
   int sx = (x >> 31) & 1;
   // 获取-x的补码
@@ -317,7 +325,8 @@ int logicalNeg(int x) {
  *  Max ops: 90
  *  Rating: 4
  */
-int howManyBits(int x) {
+int howManyBits(int x)
+{
   int shift16, shift8, shift4, shift2, shift1, shift0;
   // 符号位
   int sx = x >> 31;
@@ -365,19 +374,20 @@ int howManyBits(int x) {
  *   Max ops: 30
  *   Rating: 4
  */
-unsigned floatScale2(unsigned uf) {
-  int sign = (uf >> 31) & 0x1;  // 符号位
-  int exp = (uf >> 23) & 0xff;  // 阶码
-  int frac = uf & 0x7fffff;     // 小数位
+unsigned floatScale2(unsigned uf)
+{
+  int sign = (uf >> 31) & 0x1; // 符号位
+  int exp = (uf >> 23) & 0xff; // 阶码
+  int frac = uf & 0x7fffff; // 小数位
 
   // 阶码全部为1的特殊值
   // 若frac=0，表示无穷大；若frac不全为0，表示NaN
   // 这两种情况都可以直接返回
   if (!(exp ^ 0xff))
     return uf;
-  else if (!exp)  // 阶码全部为0，小数部分为0.M，直接左移
+  else if (!exp) // 阶码全部为0，小数部分为0.M，直接左移
     return (sign << 31) | (frac << 1);
-  else  // 规格化数，小数部分为1.M，将阶码加1
+  else // 规格化数，小数部分为1.M，将阶码加1
     return (sign << 31) | ((exp + 1) << 23) | frac;
 }
 /*
@@ -392,11 +402,12 @@ unsigned floatScale2(unsigned uf) {
  *   Max ops: 30
  *   Rating: 4
  */
-int floatFloat2Int(unsigned uf) {
-  int sign = (uf >> 31) & 0x1;  // 符号位
-  int exp = (uf >> 23) & 0xff;  // 阶码
-  int frac = uf & 0x7fffff;     // 小数位
-  int realExp = exp - 127;      // 真正的阶数
+int floatFloat2Int(unsigned uf)
+{
+  int sign = (uf >> 31) & 0x1; // 符号位
+  int exp = (uf >> 23) & 0xff; // 阶码
+  int frac = uf & 0x7fffff; // 小数位
+  int realExp = exp - 127; // 真正的阶数
 
   // 1.M左移31位会溢出
   if (realExp >= 31)
@@ -430,7 +441,8 @@ int floatFloat2Int(unsigned uf) {
  *   Max ops: 30
  *   Rating: 4
  */
-unsigned floatPower2(int x) {
+unsigned floatPower2(int x)
+{
   // 阶码为0xfe时，表示幂次为127，再大就是无穷
   if (x > 127)
     return 0xff << 23; // +INF
