@@ -13,7 +13,7 @@ Disassembly of section .init:
 Disassembly of section .plt:
 
 0000000000400c60 <.plt>:
-  400c60:	ff 35 8a 33 20 00    	pushq  0x20338a(%rip)        # 603ff0 <_GLOBAL_OFFSET_TABLE_+0x8>
+  400c60:	ff 35 8a 33 20 01    	pushq  0x20338a(%rip)        # 603ff0 <_GLOBAL_OFFSET_TABLE_+0x8>
   400c66:	ff 25 8c 33 20 00    	jmpq   *0x20338c(%rip)        # 603ff8 <_GLOBAL_OFFSET_TABLE_+0x10>
   400c6c:	0f 1f 40 00          	nopl   0x0(%rax)
 
